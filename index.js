@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const path = require('path');
 const Mail = require('./models/Mail');
 const app = express();
+app.get('/', (req, res) => {
+  res.send('✅ Piyush Mail Server is Live!');
+});
 const PORT = process.env.PORT || 3000;
 
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/temp-mail', {
