@@ -1,32 +1,21 @@
+// ✅ Full Working index.js with frontend + backend mail system const express = require("express"); const mongoose = require("mongoose"); const bodyParser = require("body-parser"); const cors = require("cors"); const path = require("path");
 
-const express = require('express');
-const mongoose = require('mongoose');
-const path = require('path');
-const Mail = require('./models/Mail');
-const app = express();
-app.get('/', (req, res) => {
-  res.send('✅ Piyush Mail Server is Live!');
-});
-const PORT = process.env.PORT || 3000;
+const app = express(); const PORT = process.env.PORT || 3000;
 
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/temp-mail', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+// MongoDB connection mongoose.connect("mongodb+srv://<your_mongodb_connection>", { useNewUrlParser: true, useUnifiedTopology: true, });
 
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+const db = mongoose.connection; db.on("error", console.error.bind(console, "connection error:")); db.once("open", () => { console.log("✅ MongoDB connected"); });
 
-app.post('/api/send', async (req, res) => {
-    const { to, subject, content } = req.body;
-    const mail = new Mail({ to, subject, content, time: new Date() });
-    await mail.save();
-    res.send({ success: true });
-});
+// Mail Schema const MailSchema = new mongoose.Schema({ email: String, subject: String, body: String, time: { type: Date, default: Date.now }, });
 
-app.get('/api/inbox/:to', async (req, res) => {
-    const inbox = await Mail.find({ to: req.params.to }).sort({ time: -1 });
-    res.json(inbox);
-});
+const Mail = mongoose.model("Mail", MailSchema);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Middleware app.use(cors()); app.use(bodyParser.json()); app.use(express.static("public"));
+
+// Frontend serve app.get("/", (req, res) => { res.sendFile(path.join(__dirname, "public", "index.html")); });
+
+// API to store mails app.post("/api/mail", async (req, res) => { const { email, subject, body } = req.body; const mail = new Mail({ email, subject, body }); await mail.save(); res.json({ success: true, message: "Mail stored" }); });
+
+// API to fetch all mails app.get("/api/mail", async (req, res) => { const mails = await Mail.find().sort({ time: -1 }); res.json(mails); });
+
+app.listen(PORT, () => { console.log(🚀 Server running on port ${PORT}); });
